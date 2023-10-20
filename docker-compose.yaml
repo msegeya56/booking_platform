@@ -1,0 +1,25 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - "9998:9998"  # Map container port to host port
+    volumes:
+      - ./static:/app/static  # Mount your static files
+    environment:
+      - INPRODUCTION=false  # Set environment variables as needed
+    depends_on:
+      - database  # Add other services as needed
+    networks:
+      - booking_platform_network
+
+  database:
+    image: postgres:latest  # Use the PostgreSQL image or choose your preferred database
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: booking_platform_db
+
+networks:
+  booking_platform_network:
