@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/justinas/nosurf"
 	"github.com/msegeya56/booking_platform/internal/config"
 	"github.com/msegeya56/booking_platform/internal/handlers"
@@ -39,6 +41,31 @@ func SessionLoad(next http.Handler) http.Handler {
 
 
 
+func Routes(app *config.AppConfig) http.Handler {
+	mux := chi.NewRouter()
+
+	mux.Use(middleware.Recoverer)
+	mux.Use(NoSurf)
+	mux.Use(SessionLoad)
+
+	mux.Get("/", handlers.Repo.Home)
+	mux.Get("/about", handlers.Repo.About)
+	mux.Get("/generals-quarters", handlers.Repo.Generals)
+	mux.Get("/majors-suite", handlers.Repo.Majors)
+
+	mux.Get("/search-availability", handlers.Repo.Availability)
+	mux.Post("/search-availability", handlers.Repo.PostAvailability)
+	mux.Post("/search-availability-json", handlers.Repo.AvailabilityJSON)
+
+	mux.Get("/contact", handlers.Repo.Contact)
+
+	mux.Get("/make-reservation", handlers.Repo.Reservation)
+
+	fileServer := http.FileServer(http.Dir("./static/"))
+	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
+	return mux
+}
 
 
 func main() {
@@ -71,7 +98,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    portNumber,
-		Handler: routes(&app),
+		Handler: Routes(&app),
 	}
 
 	err = server.ListenAndServe()

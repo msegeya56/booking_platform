@@ -3,26 +3,28 @@ FROM golang:latest AS builder
 
 WORKDIR /app
 
-# Copy only the necessary files for building
+# Copy the necessary Go module files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
+# Copy the source code into the container
 COPY . .
 
-# # Build the Go application
-# RUN CGO_ENABLED=0 GOOS=linux go build -o app
+# Build the Go application
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/booking_platform cmd/web/main.go
 
 # Stage 2: Create a lightweight runtime image
 FROM alpine:latest
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the compiled binary from the build stage
-COPY --from=build /app/app .
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/booking_platform .
 
 # Expose the port your application runs on
 EXPOSE 9998
 
 # Run the application
-CMD ["./app"]
+CMD ["./booking_platform"]
